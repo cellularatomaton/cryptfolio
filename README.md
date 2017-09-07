@@ -20,15 +20,16 @@ node calc-weights.js 10 100000
 Which results in the following output (at the time of this writing):
 
 ```
-Total MarketCap: $141214009123
-Bitcoin         	53.95%	$188816.01	41.02 BTC
-Ethereum        	21.98%	$76939.99 	234.18 ETH
-Bitcoin Cash    	7.59%	$26566.36 	41.06 BCH
-Ripple          	6.09%	$21310.95 	95035.50 XRP
-Litecoin        	2.95%	$10326.35 	130.93 LTC
-NEM             	1.89%	$6606.29  	22306.57 XEM
-Dash            	1.83%	$6397.80  	18.70 DASH
-Monero          	1.26%	$4425.28  	37.30 XMR
-IOTA            	1.25%	$4383.93  	6889.09 MIOTA
-Ethereum Classic	1.21%	$4227.04  	236.18 ETC
+HotBox:cryptfolio wmoore$ node calc-weights.js 10 100000
+Total MarketCap: $141026919736
+Bitcoin         	53.91%	$53908.96	11.74 BTC
+Ethereum        	22.00%	$21997.27	67.00 ETH
+Bitcoin Cash    	7.60%	$7598.91 	11.75 BCH
+Ripple          	6.08%	$6080.47 	27189.02 XRP
+Litecoin        	2.94%	$2940.67 	37.46 LTC
+NEM             	1.88%	$1881.71 	6381.76 XEM
+Dash            	1.83%	$1830.40 	5.35 DASH
+IOTA            	1.28%	$1279.64 	1970.92 MIOTA
+Monero          	1.27%	$1274.04 	10.67 XMR
+Ethereum Classic	1.21%	$1207.93 	67.57 ETC
 ```
