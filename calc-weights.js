@@ -77,6 +77,6 @@ function renderMarkdown(mcs, totalCap){
         if(longestUsd === 0){
             longestUsd = mc.market_cap_weight_usd.toFixed(2).length;
         }
-        console.log(`${mc.name} | %${mc.market_cap_weight.toFixed(2)} | $${mc.market_cap_weight_usd.toFixed(2)} | ${mc.symbol}`);
+        console.log(`${mc.name} | %${mc.market_cap_weight.toFixed(2)} | $${mc.market_cap_weight_usd.toFixed(2)} | ${mc.market_cap_weight_cxy.toFixed(2)} ${mc.symbol}`);
     });
 }
