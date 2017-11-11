@@ -2,7 +2,10 @@ var https = require('https');
 
 const PORTFOLIO_SIZE = process.argv[2] || 25;
 const PORTFOLIO_NOTIONAL = process.argv[3] || 100000;
-const OUTPUT_FORMAT = process.argv[4] || 'cli';
+const CURRENCIES = process.argv[4] || ''
+const OUTPUT_FORMAT = process.argv[5] || 'cli';
+
+var curr = CURRENCIES.split(',');
 
 function getMarketCaps(callback) {
     return https.get('https://api.coinmarketcap.com/v1/ticker/', function(response) {
@@ -24,7 +27,14 @@ getMarketCaps(function(marketCaps){
     // Get top N market caps:
     let mcs = marketCaps
         .filter(function(mc){
-            return mc.market_cap_usd;
+            if (curr.length > 1){
+                if(curr.includes(mc.symbol)){
+                    return mc.market_cap_usd;
+                }
+            } else {
+                 return mc.market_cap_usd;
+            }
+            
         })
         .sort(function(a, b){
             return b.market_cap_usd - a.market_cap_usd;
