@@ -2,7 +2,7 @@
 Simple node.js tool for calculating market cap weighted portfolios.  Uses the coinmarketcap.com api for market cap data. This tool takes in a portfolio size (i.e. number of coins in portfolio) and a USD denominated notional value, and returns the market cap weighted portfolio for those parameters. 
 
 ## Requirments
-A working Node.js install
+A working Node.js and npm install
 
 ## Installation
 `npm install`
