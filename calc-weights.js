@@ -1,11 +1,55 @@
-var https = require('https');
+#!/usr/bin/env node
+'use strict';
 
-const PORTFOLIO_SIZE = process.argv[2] || 25;
-const PORTFOLIO_NOTIONAL = process.argv[3] || 100000;
-const CURRENCIES = process.argv[4] || ''
+var https = require('https');
+var ArgumentParser = require('argparse').ArgumentParser;
+
+
+var parser = new ArgumentParser({
+    version: '1.0.0',
+    addHelp:true,
+    description: 'Cryptfolio: Market Cap Weighted Portfolio Generator.'
+  });
+  parser.addArgument(
+    [ '-s', '--size' ],
+    {
+      help: 'Portfolio size:  Number of coins / tokens in portfolio.'
+    }
+  );
+  parser.addArgument(
+    [ '-n', '--notional' ],
+    {
+      help: 'Notional:  Fiat value of portfolio.'
+    }
+  );
+  parser.addArgument(
+    [ '-i', '--includes'],
+    {
+      help: 'Includes:  Only use these coins / tokens in building the portfolio.'
+    }
+  );
+  parser.addArgument(
+    [ '-e', '--excludes'],
+    {
+      help: 'Excludes:  Do not use these coins / tokens in building the portfolio.'
+    }
+  );
+  parser.addArgument(
+    [ '-o', '--output'],
+    {
+      help: 'Output format:  "cli" or "markdown"'
+    }
+  );
+var args = parser.parseArgs();
+
+const PORTFOLIO_SIZE = args.size || 25;
+const PORTFOLIO_NOTIONAL = args.notional || 100000;
+const INCLUDES = args.includes || ''
+const EXCLUDES = args.excludes || ''
 const OUTPUT_FORMAT = process.argv[5] || 'cli';
 
-var curr = CURRENCIES.split(',');
+const includes = INCLUDES.split(',');
+const excludes = EXCLUDES.split(',');
 
 function getMarketCaps(callback) {
     return https.get('https://api.coinmarketcap.com/v1/ticker/', function(response) {
@@ -27,8 +71,18 @@ getMarketCaps(function(marketCaps){
     // Get top N market caps:
     let mcs = marketCaps
         .filter(function(mc){
-            if (curr.length > 1){
-                if(curr.includes(mc.symbol)){
+            if (includes.length > 1){
+                if(includes.includes(mc.symbol)){
+                    return mc.market_cap_usd;
+                }
+            } else {
+                 return mc.market_cap_usd;
+            }
+            
+        })
+        .filter(function(mc){
+            if (excludes.length > 1){
+                if(!excludes.includes(mc.symbol)){
                     return mc.market_cap_usd;
                 }
             } else {
