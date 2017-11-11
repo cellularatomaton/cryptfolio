@@ -1,0 +1,22 @@
+{
+  "name": "cryptfolio",
+  "version": "1.0.0",
+  "description": "Market cap weighted crypto currency portfolio calculation utility.",
+  "main": "calc-weights.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cellularatomaton/cryptfolio.git"
+  },
+  "author": "cellularatomaton",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cellularatomaton/cryptfolio/issues"
+  },
+  "homepage": "https://github.com/cellularatomaton/cryptfolio#readme",
+  "dependencies": {
+    "argparse": "^1.0.9"
+  }
+}
