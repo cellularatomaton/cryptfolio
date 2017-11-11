@@ -33,3 +33,19 @@ IOTA            	1.28%	$1279.64 	1970.92 MIOTA
 Monero          	1.27%	$1274.04 	10.67 XMR
 Ethereum Classic	1.21%	$1207.93 	67.57 ETC
 ```
+
+If you want to specify which Cryptocurrencies to include, you can invoke this with comma seperation:
+
+```bash
+node calc-weights.js 10 100000 ETH,BTC,BCH,LTC
+```
+
+Which results in:
+
+```
+Total MarketCap: $160563578647
+Bitcoin         66.64%  $999.55 0.16 BTC
+Ethereum        18.17%  $272.55 0.89 ETH
+Bitcoin Cash    13.15%  $197.18 0.16 BCH
+Litecoin        2.05%   $30.71  0.50 LTC
+```
