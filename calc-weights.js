@@ -44,12 +44,16 @@ var args = parser.parseArgs();
 
 const PORTFOLIO_SIZE = args.size || 25;
 const PORTFOLIO_NOTIONAL = args.notional || 100000;
-const INCLUDES = args.includes || ''
-const EXCLUDES = args.excludes || ''
+const INCLUDES = args.includes;
+const EXCLUDES = args.excludes;
 const OUTPUT_FORMAT = process.argv[5] || 'cli';
 
-const includes = INCLUDES.split(',');
-const excludes = EXCLUDES.split(',');
+const includes = INCLUDES
+    ? INCLUDES.split(',')
+    : null;
+const excludes = EXCLUDES
+    ? EXCLUDES.split(',')
+    : null;
 
 function getMarketCaps(callback) {
     return https.get('https://api.coinmarketcap.com/v1/ticker/', function(response) {
@@ -71,7 +75,7 @@ getMarketCaps(function(marketCaps){
     // Get top N market caps:
     let mcs = marketCaps
         .filter(function(mc){
-            if (includes.length > 1){
+            if (includes){
                 if(includes.includes(mc.symbol)){
                     return mc.market_cap_usd;
                 }
@@ -81,7 +85,7 @@ getMarketCaps(function(marketCaps){
             
         })
         .filter(function(mc){
-            if (excludes.length > 1){
+            if (excludes){
                 if(!excludes.includes(mc.symbol)){
                     return mc.market_cap_usd;
                 }
