@@ -25,13 +25,15 @@ var parser = new ArgumentParser({
   parser.addArgument(
     [ '-i', '--includes'],
     {
-      help: 'Includes:  Only use these coins / tokens in building the portfolio.'
+      help: 'Includes:  Only use these coins / tokens in building the portfolio.',
+      dest: 'filter_in'
     }
   );
   parser.addArgument(
     [ '-e', '--excludes'],
     {
-      help: 'Excludes:  Do not use these coins / tokens in building the portfolio.'
+      help: 'Excludes:  Do not use these coins / tokens in building the portfolio.',
+      dest: 'filter_out'
     }
   );
   parser.addArgument(
@@ -44,12 +46,11 @@ var args = parser.parseArgs();
 
 const PORTFOLIO_SIZE = args.size || 25;
 const PORTFOLIO_NOTIONAL = args.notional || 100000;
-const INCLUDES = args.includes || ''
-const EXCLUDES = args.excludes || ''
+const FILTER_IN = args.filter_in || '';
+const FILTER_OUT = args.filter_out || '';
+const FILTER_IN_ARRAY = FILTER_IN.length > 0 ? FILTER_IN.split(',') : [];
+const FILTER_OUT_ARRAY = FILTER_OUT.length > 0 ? FILTER_OUT.split(',') : [];
 const OUTPUT_FORMAT = process.argv[5] || 'cli';
-
-const includes = INCLUDES.split(',');
-const excludes = EXCLUDES.split(',');
 
 function getMarketCaps(callback) {
     return https.get('https://api.coinmarketcap.com/v1/ticker/', function(response) {
@@ -71,24 +72,24 @@ getMarketCaps(function(marketCaps){
     // Get top N market caps:
     let mcs = marketCaps
         .filter(function(mc){
-            if (includes.length > 1){
-                if(includes.includes(mc.symbol)){
+            
+            if (FILTER_IN_ARRAY.length > 0){
+                if(FILTER_IN_ARRAY.includes(mc.symbol)){
                     return mc.market_cap_usd;
                 }
             } else {
                  return mc.market_cap_usd;
             }
-            
         })
         .filter(function(mc){
-            if (excludes.length > 1){
-                if(!excludes.includes(mc.symbol)){
+            
+            if (FILTER_OUT_ARRAY.length > 0){
+                if(!FILTER_OUT_ARRAY.includes(mc.symbol)){
                     return mc.market_cap_usd;
                 }
             } else {
                  return mc.market_cap_usd;
             }
-            
         })
         .sort(function(a, b){
             return b.market_cap_usd - a.market_cap_usd;
