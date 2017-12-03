@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 'use strict';
 
-var https = require('https');
-var ArgumentParser = require('argparse').ArgumentParser;
+// let https = require('https');
+let request = require("./http-request");
+let ArgumentParser = require('argparse').ArgumentParser;
 
 
-var parser = new ArgumentParser({
+let parser = new ArgumentParser({
     version: '1.0.0',
     addHelp:true,
     description: 'Cryptfolio: Market Cap Weighted Portfolio Generator.'
@@ -53,22 +54,11 @@ const FILTER_OUT_ARRAY = FILTER_OUT.length > 0 ? FILTER_OUT.split(',') : [];
 const OUTPUT_FORMAT = process.argv[5] || 'cli';
 
 function getMarketCaps(callback) {
-    return https.get('https://api.coinmarketcap.com/v1/ticker/', function(response) {
-        var body = '';
-        response.on('data', function(d) {
-            body += d;
-        });
-        response.on('end', function() {
-            var parsed = JSON.parse(body);
-            callback(parsed);
-        });
-        response.on('error', (e) => {
-            console.error(`Got error: ${e.message}`);
-        });
-    });
+    return request('https://api.coinmarketcap.com/v1/ticker/', callback);
 }
 
-getMarketCaps(function(marketCaps){
+getMarketCaps(function(response){
+    var marketCaps = JSON.parse(response);
     // Get top N market caps:
     let mcs = marketCaps
         .filter(function(mc){

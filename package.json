@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/cellularatomaton/cryptfolio#readme",
   "dependencies": {
-    "argparse": "^1.0.9"
+    "argparse": "^1.0.9",
+    "cheerio": "^1.0.0-rc.2"
   }
 }
