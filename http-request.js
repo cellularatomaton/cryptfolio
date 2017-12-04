@@ -1,8 +1,11 @@
-var https = require('https');
+#!/usr/bin/env node
+'use strict';
+
+let https = require('https');
 
 let get = function(url, callback) {
     return https.get(url, function(response) {
-        var body = '';
+        let body = '';
         response.on('data', function(d) {
             body += d;
         });

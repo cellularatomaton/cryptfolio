@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 'use strict';
 
+let config = require('./config.js');
 let get = require('./http-request.js');
+let mkdirp = require('./mkdirp.js');
 let cheerio = require('cheerio');
 let fs = require('fs');
-let dir = 'data';
-if (!fs.existsSync(dir)){
-    fs.mkdirSync(dir);
-}
+
+mkdirp(config.market_cap_dir);
+
 get('https://coinmarketcap.com/historical/', function(response, err){
     if(!err){
         let $ = cheerio.load(response);
@@ -37,7 +38,7 @@ let crawlPaths = function(paths, index){
     if(index < paths.length){
         const path = paths[index];
         let fileDate = path.split('/')[2];
-        let fileToWrite = `data/${fileDate}`;
+        let fileToWrite = `${config.market_cap_dir}/${fileDate}`;
         if(!fs.existsSync(fileToWrite)){
             get(`https://coinmarketcap.com${path}`, function(response, err){
                 console.log("Got response...")
