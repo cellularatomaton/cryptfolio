@@ -76,7 +76,7 @@ let calc = function(historical_caps, portfolio_size){
             parser.FILTER_IN_ARRAY, 
             parser.FILTER_OUT_ARRAY
         );
-        cap.portfolio = portfolio;
+        // cap.portfolio = portfolio;
         simulation.push({
             portfolio: portfolio,
             value: portfolio_value,

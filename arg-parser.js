@@ -46,8 +46,8 @@ const FILTER_IN = args.filter_in || '';
 const FILTER_OUT = args.filter_out || '';
 
 module.exports = {    
-    PORTFOLIO_SIZE : args.size || 25,
-    PORTFOLIO_NOTIONAL : args.notional || 100000,
+    PORTFOLIO_SIZE : parseInt(args.size) || 25,
+    PORTFOLIO_NOTIONAL : parseInt(args.notional) || 100000,
     FILTER_IN_ARRAY : FILTER_IN.length > 0 ? FILTER_IN.split(',') : [],
     FILTER_OUT_ARRAY : FILTER_OUT.length > 0 ? FILTER_OUT.split(',') : [],
     OUTPUT_FORMAT : args.output || 'cli'
