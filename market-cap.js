@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 'use strict';
 
-let calc = function(market_caps, portfolio_size, portfolio_notional, filter_in, filter_out){
+let calc = function(
+    market_caps, 
+    portfolio_size, 
+    portfolio_notional, 
+    filter_in, 
+    filter_out,
+    method = 'weighted')
+{
     // Get top N market caps:
     let market_cap_weights = market_caps
     .filter(function(mc){
@@ -35,7 +42,11 @@ let calc = function(market_caps, portfolio_size, portfolio_notional, filter_in, 
     });
 
     market_cap_weights.forEach(function(mc){
-        mc.market_cap_weight = mc.market_cap_usd / totalCap;
+        if(method === 'weighted'){
+            mc.market_cap_weight = mc.market_cap_usd / totalCap;
+        }else{
+            mc.market_cap_weight = 1 / portfolio_size;
+        }
         mc.market_cap_weight_usd = mc.market_cap_weight * portfolio_notional;
         mc.market_cap_weight_cxy = mc.market_cap_weight_usd / mc.price_usd;
     });

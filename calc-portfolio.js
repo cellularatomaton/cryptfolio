@@ -59,7 +59,36 @@ let get_portfolio_value = function(portfolio, caps){
     return portfolio_value;
 }
 
-let calc = function(historical_caps, portfolio_size){
+let calc_uniform = function(historical_caps, portfolio_size){
+    simulation = [];
+    historical_caps.forEach(function(cap, index, array){
+        let portfolio_value = parser.PORTFOLIO_NOTIONAL;
+        if(0 < index){
+            // let last_cap = array[index-1];
+            let last_portfolio = simulation[index-1].portfolio;
+            portfolio_value = get_portfolio_value(last_portfolio, cap.market_caps);
+        }
+        // console.log(`Portfolio Value: ${portfolio_value}`);
+        let portfolio = marketCap(
+            cap.market_caps, 
+            portfolio_size, 
+            portfolio_value, 
+            parser.FILTER_IN_ARRAY, 
+            parser.FILTER_OUT_ARRAY,
+            'uniform'
+        );
+        // cap.portfolio = portfolio;
+        simulation.push({
+            portfolio: portfolio,
+            value: portfolio_value,
+            date: cap.date,
+            date_string: cap.date_string
+        });
+    })
+    return simulation;
+}
+
+let calc_weighted = function(historical_caps, portfolio_size){
     simulation = [];
     historical_caps.forEach(function(cap, index, array){
         let portfolio_value = parser.PORTFOLIO_NOTIONAL;
@@ -89,9 +118,19 @@ let calc = function(historical_caps, portfolio_size){
 
 let h_caps = load();
 simulations = [];
-[1, 5, 10, 15, 20, 25, 30, 40, 50, 100].forEach(function(size){
-    console.log(`Simulating portfolio size: ${size}`);
-    let sim = calc(h_caps, size);
+[1, 5, 10, 15, 20, 25].forEach(function(size){
+    console.log(`Simulating uniformly weighted portfolio size: ${size}`);
+    let sim = calc_uniform(h_caps, size);
+    console.log(`Final value: $${sim[sim.length - 1].value}`);
+    simulations.push({
+        simulation: sim,
+        id: `U_${size}`
+    });
+});
+
+[5, 15, 25].forEach(function(size){
+    console.log(`Simulating market cap weighted portfolio size: ${size}`);
+    let sim = calc_weighted(h_caps, size);
     console.log(`Final value: $${sim[sim.length - 1].value}`);
     simulations.push({
         simulation: sim,

@@ -52,6 +52,9 @@
             var bar_data = [];
             bar_keys.forEach(function(key){
                 var val = agg[key];
+                val.data = val.data.sort(function(a, b){
+                    return a[1] - b[1];
+                });
                 bar_data.push(val);
             });
             return bar_data;
