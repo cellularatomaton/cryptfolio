@@ -7,8 +7,9 @@ let calc = function(
     portfolio_notional, 
     filter_in, 
     filter_out,
-    method = 'weighted')
+    method)
 {
+    method = method || 'weighted';
     // Get top N market caps:
     let market_cap_weights = market_caps
     .filter(function(mc){
@@ -36,26 +37,29 @@ let calc = function(
 
     let totalCap = 0;
     let longestName = 0;
-    market_cap_weights.forEach(function(mc){
+    // Copy all market caps so that we have a unique set for this run.
+    const output_weights = market_cap_weights.map((w)=>{return Object.assign({}, w);});
+    output_weights.forEach(function(mc){
         totalCap += parseInt(mc.market_cap_usd);
         longestName = Math.max(longestName, mc.name.length);
     });
 
-    market_cap_weights.forEach(function(mc){
+    output_weights.forEach(function(mc){
         if(method === 'weighted'){
             mc.market_cap_weight = mc.market_cap_usd / totalCap;
         }else{
             mc.market_cap_weight = 1 / portfolio_size;
+            // console.log(`Uniform Weight: ${mc.market_cap_weight}`);
         }
         mc.market_cap_weight_usd = mc.market_cap_weight * portfolio_notional;
         mc.market_cap_weight_cxy = mc.market_cap_weight_usd / mc.price_usd;
     });
 
     return {
-        weights: market_cap_weights,
+        weights: output_weights,
         total_cap: totalCap,
         longest_name: longestName,
-        longest_usd: market_cap_weights[0].market_cap_weight_usd.toFixed(2).length
+        longest_usd: output_weights[0].market_cap_weight_usd.toFixed(2).length
     };
 }
 
