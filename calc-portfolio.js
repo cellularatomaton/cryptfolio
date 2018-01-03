@@ -77,7 +77,6 @@ const calc_uniform = function(historical_caps, portfolio_size){
             parser.FILTER_OUT_ARRAY,
             'uniform'
         );
-        console.log(`Uniform: ${portfolio.weights[0].market_cap_weight}`);
         // cap.portfolio = portfolio;
         sim.push({
             portfolio: portfolio,

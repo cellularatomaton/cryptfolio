@@ -49,7 +49,6 @@ let calc = function(
             mc.market_cap_weight = mc.market_cap_usd / totalCap;
         }else{
             mc.market_cap_weight = 1 / portfolio_size;
-            // console.log(`Uniform Weight: ${mc.market_cap_weight}`);
         }
         mc.market_cap_weight_usd = mc.market_cap_weight * portfolio_notional;
         mc.market_cap_weight_cxy = mc.market_cap_weight_usd / mc.price_usd;
