@@ -104,7 +104,7 @@
     }
 
     var setup_values = function(v_data){
-        return Highcharts.stockChart('values_container', {
+        var value_chart = Highcharts.stockChart('values_container', {
             title: {
                 text: 'Portfolio historical comparison.'
             },
@@ -112,7 +112,7 @@
                 type: 'datetime'
             },
             yAxis: {
-                //type: 'logarithmic',
+                type: 'logarithmic',
                 title: {
                     text: 'Notional value.'
                 }
@@ -130,8 +130,25 @@
                     }
                 }
             },
-            series: v_data
+            series: v_data,
+            exporting: {
+                buttons: {
+                    logButton: {
+                        text: 'Log',
+                        onclick: function () {
+                            value_chart.yAxis[0].update({type: 'logarithmic'});
+                        }
+                    },
+                    linearButton: {
+                        text: 'Linear',
+                        onclick: function () {
+                            value_chart.yAxis[0].update({type: 'linear'});
+                        }
+                    }
+                }
+            }
         });
+        return value_chart;
     }
 
     $.get('data/simulations.json', function(data){
