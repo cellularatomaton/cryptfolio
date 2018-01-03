@@ -1,283 +1,109 @@
 <h1>{{title}}</h1>
 <style>
-    .axis--x path {
-        display: none;
-    }
-
-    .line {
-        fill: none;
-        stroke: steelblue;
-        stroke-width: 1.5px;
-    }
-
-    .graphic {
-        position: relative
-    }
-
-    form {
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    .Values-Container{
         position: absolute;
-        left: 160px;
-        top: 20px;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        width: 50%;
     }
 
-    label {
-        display: block;
+    .Weights-Container{
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        right: 0px;
+        width: 50%;
     }
 </style>
-<div class="graphic">
-    <form>
-        <label>
-            <input type="radio" name="mode" value="linear"> Linear </label>
-        <label>
-            <input type="radio" name="mode" value="log" checked> Log </label>
-    </form>
-    <svg id="values_svg" width="960" height="500"></svg>
-</div>
-<div class="graphic">
-    <svg id="weights_svg" width="960" height="500"></svg>
-</div>
-<script src="http://d3js.org/d3.v4.min.js"></script>
+<div id="values_container" class="Values-Container"></div>
+<div id="weights_container" class="Weights-Container"></div>
 <script>
-    var svg_values = d3.select("#values_svg"),
-        svg_weights = d3.select("#weights_svg"),
-        margin = { top: 20, right: 80, bottom: 30, left: 80 },
-        width = svg_values.attr("width") - margin.left - margin.right,
-        height = svg_values.attr("height") - margin.top - margin.bottom,
-        g_values = svg_values.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")"),
-        g_weights = svg_weights.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var parseTime = d3.timeParse("%Y-%m-%d");
+    var parse_time = function(formatted_string){
+        return (new Date(formatted_string)).getTime();
+    }
 
-    var x = d3.scaleTime().range([0, width]),
-        y_log = d3.scaleLog().range([height, 0]),
-        y_linear = d3.scaleLinear().range([height, 0]),
-        y_bar = d3.scaleLinear().range([height, 0]),
-        z = d3.scaleOrdinal(d3.schemeCategory10),
-        z_bar = d3.scaleOrdinal(d3.schemeCategory20b);
+    var setup_values = function(v_data){
+        Highcharts.chart('values_container', {
+            title: {
+                text: 'Portfolio historical comparison.'
+            },
+            xAxis: {
+                type: 'datetime'
+            },
+            yAxis: {
+                title: {
+                    text: 'Notional value.'
+                }
+            },
+            series: v_data
+        });
+    }
 
-    var line = d3.line()
-        .curve(d3.curveBasis)
-        .x(function (d) { return x(d.date); })
-        .y(function (d) { return y_log(d.portfolio_value); });
+    var setup_weights = function(w_data){
+        Highcharts.stockChart('weights_container', {
+            chart: {
+                type: 'area'
+            },
+            title: {
+                text: 'Portfolio Weights'
+            },
+            xAxis: {
+                type: 'datetime'
+            },
+            yAxis: {
+                title: {
+                    text: 'Percent'
+                }
+            },
+            plotOptions: {
+                area: {
+                    stacking: 'normal',
+                    lineColor: '#666666',
+                    lineWidth: 1,
+                    marker: {
+                        lineWidth: 1,
+                        lineColor: '#666666'
+                    }
+                }
+            },
+            series: w_data
+        });
+    }
 
-    var line2 = d3.line()
-        .curve(d3.curveBasis)
-        .x(function (d) { return x(d.date); })
-        .y(function (d) { return y_linear(d.portfolio_value); });
-
-    d3.json("data/simulations.json", function (error, data) {
-        if (error) throw error;
-
-        var simulations = data.map(function (d) {
+    $.get('data/simulations.json', function(data){
+        var value_data = data.map(function (d) {
             return {
-                id: d.size,
-                values: d.simulation.map(function (s) {
-                    return { date: parseTime(s.date_string), portfolio_value: s.value };
+                name: 'MC_' + d.size,
+                data: d.simulation.map(function (s) {
+                    return [parse_time(s.date_string), s.value];
                 })
             };
         });
 
         var bar_sim = 2;
-        var symbol_map = data[bar_sim]
-            .simulation
-            .reduce(function(agg, sim, indx, arr){
-                return sim.portfolio.weights.reduce(function(agg2, weight, indx2, arr2){
-                    agg2[weight.symbol] = weight.name;
-                    return agg2;
-                }, agg);
-            }, {});
-        var bar_keys = Object.keys(symbol_map);
-        var bar_data = data[bar_sim]
-            .simulation
-            .map(function(sim){
-                var bar = sim.portfolio.weights.reduce(function(agg, weight, indx, arr){
-                    agg[weight.symbol] = weight.market_cap_weight;
-                    return agg;
-                }, {});
-                bar.date = parseTime(sim.date_string);
-                return bar;
+        var agg = {};
+        data[bar_sim].simulation.forEach(function(sim){
+            sim.portfolio.weights.forEach(function(weight){
+                if(!agg[weight.symbol]){
+                    agg[weight.symbol] = {
+                        name: weight.symbol,
+                        data: []
+                    };
+                }
+                agg[weight.symbol].data.push([parse_time(sim.date_string), weight.market_cap_weight]);
             });
-        var stacked_bars = d3.stack().keys(bar_keys)(bar_data);
+        });
+        var bar_keys = Object.keys(agg);
+        var bar_data = [];
+        bar_keys.forEach(function(key){
+            var val = agg[key];
+            bar_data.push(val);
+        });
 
-        x.domain(d3.extent(simulations[0].values, function (d) { return d.date; }));
-
-        var y_domain = [
-            d3.min(simulations, function (c) { return d3.min(c.values, function (d) { return d.portfolio_value; }); }),
-            d3.max(simulations, function (c) { return d3.max(c.values, function (d) { return d.portfolio_value; }); })
-        ];
-
-        var y_bar_domain = [0,1];
-
-        y_log.domain(y_domain);
-        y_linear.domain(y_domain);
-        y_bar.domain(y_bar_domain);
-
-        z.domain(simulations.map(function (c) { return c.id; }));
-        z_bar.domain(bar_keys.map(function(d, i){return i;}));
-
-        g_values.append("g")
-            .attr("class", "axis axis--x")
-            .attr("transform", "translate(0," + height + ")")
-            .call(d3.axisBottom(x));
-
-        g_values.append("g")
-            .attr("class", "axis axis--y")
-            .call(d3.axisLeft(y_log))
-            .append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 6)
-            .attr("dy", "0.71em")
-            .attr("fill", "#000")
-            .text("Portfolio Value, $USD");
-
-        var sim = g_values.selectAll(".sim")
-            .data(simulations)
-            .enter().append("g")
-            .attr("class", "sim");
-
-        sim.append("path")
-            .attr("class", "line")
-            .attr("d", function (d) { return line(d.values); })
-            .attr("id", function (d) { return "P_" + d.id; })
-            .style("stroke", function (d) { return z(d.id); })
-            .on("mouseover", handleLineOver)
-            .on("mouseout", handleLineOut)
-            .on("click", handleLineClick);
-
-        g_weights.append("g")
-            .selectAll("g")
-            .data(stacked_bars)
-            .enter().append("g")
-            .attr("fill", function (d, i) { 
-                return z(i); 
-            })
-            .selectAll("rect")
-            .data(function (d) { 
-                return d; 
-            })
-            .enter().append("rect")
-            .attr("x", function (d) { 
-                return x(d.data.date); 
-            })
-            .attr("y", function (d) { 
-                return y_bar(d[1]); 
-            })
-            .attr("height", function (d) { 
-                return y_bar(d[0]) - y_bar(d[1]); 
-            })
-            .attr("width", 2);
-
-        g_weights.append("g")
-            .attr("class", "axis")
-            .attr("transform", "translate(0," + height + ")")
-            .call(d3.axisBottom(x));
-
-        g_weights.append("g")
-            .attr("class", "axis")
-            .call(d3.axisLeft(y_bar).ticks(null, "s"))
-            .append("text")
-            .attr("x", 2)
-            .attr("y", y_bar(y_bar.ticks().pop()) + 0.5)
-            .attr("dy", "0.32em")
-            .attr("fill", "#000")
-            .attr("font-weight", "bold")
-            .attr("text-anchor", "start")
-            .text("Weights");
-
-        var legend = g_values.append("g")
-            .attr("font-family", "sans-serif")
-            .attr("font-size", 10)
-            .attr("text-anchor", "start")
-            .selectAll("g")
-            .data(simulations.map(function (s) { return s.id; }))
-            .enter().append("g")
-            .attr("transform", function (d, i) { return "translate(0," + i * 20 + ")"; });
-
-        legend.append("rect")
-            .attr("id", function (d) { return "R_" + d; })
-            .attr("x", 19)
-            .attr("width", 19)
-            .attr("height", 19)
-            .attr("fill", z)
-            .on("mouseover", handleRectOver)
-            .on("mouseout", handleRectOut)
-            .on("click", handleRectClick);
-
-        legend.append("text")
-            .attr("x", 50)
-            .attr("y", 9.5)
-            .attr("dy", "0.32em")
-            .text(function (d) { return d; });
-
-        var timeout = d3.timeout(function () {
-            d3.select("input[value=\"linear\"]")
-                .property("checked", true)
-                .dispatch("change");
-        }, 2000);
-
-        d3.selectAll("input")
-            .on("change", changed);
-
-        function changed() {
-            timeout.stop();
-            if (this.value === "linear") transitionLinear();
-            else transitionLog();
-        }
-
-        function transitionLinear() {
-            d3.selectAll(".line")
-                .transition()
-                .duration(750)
-                .attr("d", function (d) { return line2(d.values); });
-            d3.select(".axis--y")
-                .call(d3.axisLeft(y_linear));
-        }
-
-        function transitionLog() {
-            d3.selectAll(".line")
-                .transition()
-                .duration(750)
-                .attr("d", function (d) { return line(d.values); });
-            d3.select(".axis--y")
-                .call(d3.axisLeft(y));
-        }
-
-        function handleLineOver(d, i) {
-            highlightOn(d.id);
-        }
-        function handleLineOut(d, i) {
-            highlightOff(d.id);
-        }
-
-        function handleLineClick(d) {
-
-        }
-
-        function handleRectOver(d, i) {
-            highlightOn(d);
-        }
-        function handleRectOut(d, i) {
-            highlightOff(d);
-        }
-
-        function handleRectClick(d) {
-
-        }
-
-        function highlightOn(id) {
-            d3.select("#P_" + id)
-                .style("stroke-width", "3px");
-            d3.select("#R_" + id)
-                .attr("width", 23);
-        }
-
-        function highlightOff(id) {
-            d3.select("#P_" + id)
-                .style("stroke-width", "1.5px");
-            d3.select("#R_" + id)
-                .attr("width", 19);
-        }
+        setup_values(value_data);
+        setup_weights(bar_data);
     });
-
+    
 </script>
