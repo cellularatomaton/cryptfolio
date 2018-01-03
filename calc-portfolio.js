@@ -95,7 +95,7 @@ simulations = [];
     console.log(`Final value: $${sim[sim.length - 1].value}`);
     simulations.push({
         simulation: sim,
-        size: size
+        id: `MC_${size}`
     });
 });
 

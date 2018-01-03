@@ -1,44 +1,63 @@
-<h1>{{title}}</h1>
 <style>
+    .Header{
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        height: 50px;
+    }
     .Values-Container{
         position: absolute;
-        top: 0px;
-        bottom: 0px;
-        left: 0px;
-        width: 50%;
+        top: 60px;
+        bottom: 10px;
+        left: 10px;
+        width: 49%;
     }
 
     .Weights-Container{
         position: absolute;
-        top: 0px;
-        bottom: 0px;
-        right: 0px;
-        width: 50%;
+        top: 60px;
+        bottom: 10px;
+        right: 10px;
+        width: 49%;
     }
 </style>
+<div class="Header">
+    <h2>{{title}}</h2>
+</div>
 <div id="values_container" class="Values-Container"></div>
 <div id="weights_container" class="Weights-Container"></div>
 <script>
-
+    var simulation_data = null;
     var parse_time = function(formatted_string){
         return (new Date(formatted_string)).getTime();
     }
 
-    var setup_values = function(v_data){
-        Highcharts.chart('values_container', {
-            title: {
-                text: 'Portfolio historical comparison.'
-            },
-            xAxis: {
-                type: 'datetime'
-            },
-            yAxis: {
-                title: {
-                    text: 'Notional value.'
-                }
-            },
-            series: v_data
-        });
+    var get_bar_data = function(sim_data, sim_id){
+        var agg = {};
+        var sim = sim_data.filter(function(s){return s.id === sim_id})[0];
+        if(sim){
+            sim.simulation.forEach(function(sim){
+                sim.portfolio.weights.forEach(function(weight){
+                    if(!agg[weight.symbol]){
+                        agg[weight.symbol] = {
+                            name: weight.symbol,
+                            data: []
+                        };
+                    }
+                    agg[weight.symbol].data.push([parse_time(sim.date_string), weight.market_cap_usd]);
+                });
+            });
+            var bar_keys = Object.keys(agg);
+            var bar_data = [];
+            bar_keys.forEach(function(key){
+                var val = agg[key];
+                bar_data.push(val);
+            });
+            return bar_data;
+        }else{
+            [];
+        }
     }
 
     var setup_weights = function(w_data){
@@ -59,7 +78,7 @@
             },
             plotOptions: {
                 area: {
-                    stacking: 'normal',
+                    stacking: 'percent',
                     lineColor: '#666666',
                     lineWidth: 1,
                     marker: {
@@ -72,37 +91,52 @@
         });
     }
 
+    var setup_values = function(v_data){
+        Highcharts.stockChart('values_container', {
+            title: {
+                text: 'Portfolio historical comparison.'
+            },
+            xAxis: {
+                type: 'datetime'
+            },
+            yAxis: {
+                //type: 'logarithmic',
+                title: {
+                    text: 'Notional value.'
+                }
+            },
+            legend: {
+                enabled: true
+            },
+            plotOptions: {
+                line: {
+                    events: {
+                        legendItemClick: function(event){
+                            event.preventDefault();
+                            var bar_data = get_bar_data(simulation_data, event.target.name);
+                            setup_weights(bar_data);
+                        }
+                    }
+                }
+            },
+            series: v_data
+        });
+    }
+
+    
+
     $.get('data/simulations.json', function(data){
+        simulation_data = data;
         var value_data = data.map(function (d) {
             return {
-                name: 'MC_' + d.size,
+                name: d.id,
                 data: d.simulation.map(function (s) {
                     return [parse_time(s.date_string), s.value];
                 })
             };
         });
-
-        var bar_sim = 2;
-        var agg = {};
-        data[bar_sim].simulation.forEach(function(sim){
-            sim.portfolio.weights.forEach(function(weight){
-                if(!agg[weight.symbol]){
-                    agg[weight.symbol] = {
-                        name: weight.symbol,
-                        data: []
-                    };
-                }
-                agg[weight.symbol].data.push([parse_time(sim.date_string), weight.market_cap_weight]);
-            });
-        });
-        var bar_keys = Object.keys(agg);
-        var bar_data = [];
-        bar_keys.forEach(function(key){
-            var val = agg[key];
-            bar_data.push(val);
-        });
-
         setup_values(value_data);
+        var bar_data = get_bar_data(simulation_data, 'MC_15');
         setup_weights(bar_data);
     });
     
